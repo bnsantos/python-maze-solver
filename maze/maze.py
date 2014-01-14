@@ -61,7 +61,7 @@ class Maze(object):
                     print 'Found solution'
                     break
                 if self.base_pixels[x, y] == colors.WHITE:
-                    self.base_pixels[x, y] = colors.RED
+                    self.base_pixels[x, y] = colors.GRAY
                     new_path = list(path)
                     new_path.append(adjacent)
                     queue.put(new_path)
