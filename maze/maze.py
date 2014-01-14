@@ -1,6 +1,7 @@
 __author__ = 'bruno'
 from PIL import Image
 import colors
+from Queue import Queue
 
 
 class Maze(object):
@@ -9,10 +10,13 @@ class Maze(object):
         self.output_filename = output_filename
         self.base_img = Image.open(self.input_filename)
         self.base_pixels = self.base_img.load()
+        self.width = self.base_img.size[0]
+        self.height = self.base_img.size[1]
         self.start_pos = None
         self.end_pos = None
         self.solved = False
         self.find_start_and_end_point()
+        self.solution_path = []
 
     def is_solved(self):
         return self.solved
@@ -29,11 +33,8 @@ class Maze(object):
         self.base_img.save(self.input_filename)
 
     def find_start_and_end_point(self):
-        width = self.base_img.size[0]
-        height = self.base_img.size[1]
-
-        for i in range(width):
-            for j in range(height):
+        for i in range(self.width):
+            for j in range(self.height):
                 pixel = self.base_pixels[i, j]
                 if pixel != colors.WHITE and pixel != colors.BLACK:
                     if pixel == colors.BLUE:
@@ -42,3 +43,44 @@ class Maze(object):
                         self.end_pos = (i, j)
         if self.start_pos is None or self.end_pos is None:
             print 'ERROR'
+
+    def solve(self):
+        #BFS
+        queue = Queue()
+        # Wrapping the start tuple in a list
+        queue.put([self.start_pos])
+
+        while not queue.empty() and not self.solved:
+            path = queue.get()
+            last_pixel = path[-1]
+            for adjacent in self.get_adjacent(last_pixel):
+                x, y = adjacent
+                if adjacent == self.end_pos and self.base_pixels[x, y] == colors.GREEN:
+                    self.solved = True
+                    self.solution_path = path
+                    print 'Found solution'
+                    break
+                if self.base_pixels[x, y] == colors.WHITE:
+                    self.base_pixels[x, y] = colors.RED
+                    new_path = list(path)
+                    new_path.append(adjacent)
+                    queue.put(new_path)
+
+        print 'did not find solution'
+
+    def get_adjacent(self, point):
+        x, y = point
+        adjacent = []
+        if x > 0:
+            adjacent.append((x-1, y))
+        if x < self.width-1:
+            adjacent.append((x+1, y))
+        if y > 0:
+            adjacent.append((x, y-1))
+        if y < self.height-1:
+            adjacent.append((x, y+1))
+        return adjacent
+
+    def save_solved(self):
+        if self.solved:
+            self.base_img.save(self.output_filename)
