@@ -65,8 +65,10 @@ class Maze(object):
                     new_path = list(path)
                     new_path.append(adjacent)
                     queue.put(new_path)
-
-        print 'did not find solution'
+        if self.solved:
+            print 'solution found'
+        else:
+            print 'did not find solution'
 
     def get_adjacent(self, point):
         x, y = point
@@ -83,4 +85,10 @@ class Maze(object):
 
     def save_solved(self):
         if self.solved:
+            self.draw_path()
             self.base_img.save(self.output_filename)
+
+    def draw_path(self):
+        for pixel in self.solution_path:
+            x, y = pixel
+            self.base_pixels[x, y] = colors.RED
