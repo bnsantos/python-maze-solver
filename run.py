@@ -1,7 +1,6 @@
 __author__ = 'bruno'
 from maze.maze import Maze
 
-
 m = Maze('input/simple.png', 'output/solution_simple.png')
 #small set up
 #m.set_end_point(10, 20)

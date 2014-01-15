@@ -17,6 +17,9 @@ class Maze(object):
         self.solved = False
         self.find_start_and_end_point()
         self.solution_path = []
+        self.iterations = 0
+        # Save an image every SNAPSHOT_FREQ steps.
+        self.SNAPSHOT_FREQ = 1000
 
     def is_solved(self):
         return self.solved
@@ -50,6 +53,9 @@ class Maze(object):
         # Wrapping the start tuple in a list
         queue.put([self.start_pos])
 
+        self.iterations = 0
+        img = 0
+
         while not queue.empty() and not self.solved:
             path = queue.get()
             last_pixel = path[-1]
@@ -58,6 +64,7 @@ class Maze(object):
                 if adjacent == self.end_pos and self.base_pixels[x, y] == colors.GREEN:
                     self.solved = True
                     self.solution_path = path
+                    self.base_img.save('{0}/{1:05d}.png'.format('tmp', img))
                     print 'Found solution'
                     break
                 if self.base_pixels[x, y] == colors.WHITE:
@@ -65,6 +72,11 @@ class Maze(object):
                     new_path = list(path)
                     new_path.append(adjacent)
                     queue.put(new_path)
+
+            if self.iterations % self.SNAPSHOT_FREQ == 0:
+                self.base_img.save('{0}/{1:05d}.png'.format('tmp', img))
+                img += 1
+            self.iterations += 1
         if self.solved:
             print 'solution found'
         else:
