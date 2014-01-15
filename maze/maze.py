@@ -5,21 +5,29 @@ from Queue import Queue
 
 
 class Maze(object):
-    def __init__(self, input_filename, output_filename):
+    def __init__(self, input_filename, output_filename, start_pos, end_pos):
         self.input_filename = input_filename
         self.output_filename = output_filename
-        self.base_img = Image.open(self.input_filename)
-        self.base_pixels = self.base_img.load()
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+
+        self.base_img = None
+        self.base_pixels = None
+        self.convert_maze_black_white()
         self.width = self.base_img.size[0]
         self.height = self.base_img.size[1]
-        self.start_pos = None
-        self.end_pos = None
+
+        x, y = start_pos
+        self.set_start_point(x, y)
+
+        x, y = end_pos
+        self.set_end_point(x, y)
+
         self.solved = False
-        self.find_start_and_end_point()
         self.solution_path = []
         self.iterations = 0
         # Save an image every SNAPSHOT_FREQ steps.
-        self.SNAPSHOT_FREQ = 1000
+        self.snapshot_freq = 100
 
     def is_solved(self):
         return self.solved
@@ -73,7 +81,7 @@ class Maze(object):
                     new_path.append(adjacent)
                     queue.put(new_path)
 
-            if self.iterations % self.SNAPSHOT_FREQ == 0:
+            if self.iterations % self.snapshot_freq == 0:
                 self.base_img.save('{0}/{1:05d}.png'.format('tmp', img))
                 img += 1
             self.iterations += 1
@@ -104,3 +112,20 @@ class Maze(object):
         for pixel in self.solution_path:
             x, y = pixel
             self.base_pixels[x, y] = colors.RED
+
+    def convert_maze_black_white(self):
+        #Loading first time
+        self.base_img = Image.open(self.input_filename)
+
+        # convert image to black and white
+        self.base_img = self.base_img.convert('1')
+        self.base_img.save(self.input_filename)
+
+        # saving in rgb
+        base_img_rgb = Image.new("RGBA", self.base_img.size)
+        base_img_rgb.paste(self.base_img)
+        base_img_rgb.save(self.input_filename)
+
+        # openning it back in rgba
+        self.base_img = Image.open(self.input_filename)
+        self.base_pixels = self.base_img.load()
